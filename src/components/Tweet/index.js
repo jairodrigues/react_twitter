@@ -1,4 +1,6 @@
 import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
+import Helmet from 'react-helmet'
 import './tweet.css'
 
 class Tweet extends Component {
@@ -7,12 +9,17 @@ class Tweet extends Component {
         const { tweetInfo } = this.props
         const { usuario } = this.props.tweetInfo
         
-        return (
+        return (           
             <article className="tweet">
+             <Helmet>
+                <title>oi</title>
+            </Helmet>
                 <div className="tweet__cabecalho">
                     <img className="tweet__fotoUsuario" src={usuario.foto} alt="" />
                     <span className="tweet__nomeUsuario">{usuario.nome}</span>
-                    <a href=""><span className="tweet__userName">@{usuario.login}</span></a>
+                    <Link to={`/perfil/${usuario.login}`}>
+                        <span className="tweet__userName">@{usuario.login}</span>
+                    </Link>
                 </div>
                 <p className="tweet__conteudo">{tweetInfo.conteudo}</p>
                 <footer className="tweet__footer">

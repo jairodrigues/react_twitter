@@ -9,11 +9,21 @@ import './assets/css/icon.css'
 import './assets/css/iconHeart.css'
 
 import './assets/css/novoTweet.css'
-// import './index.css';
-
 
 import App from './App';
+import PerfilPage from './pages/PerfilPage'
+
+//Rotas
+import {BrowserRouter} from 'react-router-dom'
+import { Switch, Route } from 'react-router-dom'
+
 import registerServiceWorker from './registerServiceWorker';
 
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(
+    <BrowserRouter>
+        <Switch>
+            <Route path="/" exact component={App} />
+            <Route path="/perfil/:login" component={PerfilPage} />
+        </Switch>
+    </BrowserRouter>, document.getElementById('root'));
 registerServiceWorker();

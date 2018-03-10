@@ -10,15 +10,16 @@ class App extends Component {
     super()
     this.state = {
       novoTweet: '',
-      tweets: ''
+      tweets: '',
+      carregando: true
     }
   }
 
   componentDidMount() { //Pega depois que componente montou
     fetch('https://twitelum-api.herokuapp.com/tweets')
     .then(resposta => resposta.json())
-    .then(tweets => {this.setState({tweets: tweets})})
-
+    .then(tweets => {this.setState({tweets: tweets,carregando: false})})
+     
   }
 
   // componentWillMount() { //Pega antes que o componente monte
@@ -36,11 +37,11 @@ class App extends Component {
 
   tweetExist(){
     if(this.state.tweets.length > 0){
-        return  this.state.tweets.map( (tweet, index)=>
+        return this.state.tweets.map( (tweet, index)=>
         <Tweet key={tweet._id} conteudo={tweet.conteudo} tweetInfo={tweet}/> 
         )
       }else{
-          return <Fragment><h1>SE FODEU</h1></Fragment>
+          return <Fragment><h1>Não Possui tweets</h1></Fragment>
      }
   }
 
@@ -101,7 +102,7 @@ class App extends Component {
             <Dashboard posicao="centro">
                 <Widget>
                     <div className="tweetsArea">
-                    { this.tweetExist() }
+                    { this.state.carregando ? "Carregando" : this.tweetExist()  }
                     </div>
                 </Widget>
             </Dashboard>
