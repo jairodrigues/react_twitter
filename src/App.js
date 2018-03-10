@@ -9,14 +9,62 @@ class App extends Component {
   constructor(){
     super()
     this.state = {
-      novoTweet: ''
+      novoTweet: '',
+      tweets: ''
     }
-    console.log('MY EGGS',this.state.novoTweet.length)
   }
 
-  isTweetValid(){
+  componentDidMount() { //Pega depois que componente montou
+    fetch('https://twitelum-api.herokuapp.com/tweets')
+    .then(resposta => resposta.json())
+    .then(tweets => {this.setState({tweets: tweets})})
+
+  }
+
+  // componentWillMount() { //Pega antes que o componente monte
+  //   setInterval(() => {
+  //   fetch('https://twitelum-api.herokuapp.com/tweets')
+  //   .then(resposta => resposta.json())
+  //   .then(tweets => {this.setState({tweets: tweets})}, 5000)
+  //   })
+  // }
+
+
+  isTweetInvalid = () => {
     return this.state.novoTweet.length > 140 
   }
+
+  tweetExist(){
+    if(this.state.tweets.length > 0){
+        return  this.state.tweets.map( (tweet, index)=>
+        <Tweet key={tweet._id} conteudo={tweet.conteudo} tweetInfo={tweet}/> 
+        )
+      }else{
+          return <Fragment><h1>SE FODEU</h1></Fragment>
+     }
+  }
+
+  adicionaTweet = (event) => {
+    event.preventDefault()
+    console.log(this.state.novoTweet.length)
+    if(this.isTweetInvalid() || this.state.novoTweet.length === 0){
+      console.log('Invalido')
+    }else{      
+      fetch('https://twitelum-api.herokuapp.com/tweets',{
+        method: 'POST',
+        body: JSON.stringify({ conteudo: this.state.novoTweet, login: 'omariosouto'})
+    })
+    .then((response)=> response.json())
+    .then((tweetServer) => {
+      console.log(tweetServer)
+      this.setState({
+        tweets: [tweetServer, ...this.state.tweets],
+        novoTweet: ''
+      })
+    })
+  }
+}
+
   render() {
     
     return (
@@ -25,12 +73,12 @@ class App extends Component {
         <div className="container">
             <Dashboard>
                 <Widget>
-                    <form className="novoTweet">
+                    <form onSubmit={this.adicionaTweet} className="novoTweet">
                         <div className="novoTweet__editorArea">
                             <span 
                               className={
                                 `novoTweet__status 
-                                ${this.isTweetValid() ? 'novoTweet__status--invalido' : ''}
+                                ${this.isTweetInvalid() ? 'novoTweet__status--invalido' : ''}
                                 `}>{this.state.novoTweet.length}/140</span>
                             <textarea className="novoTweet__editor"
                               onChange = {(event)=> {this.setState({novoTweet: event.target.value})}} 
@@ -39,7 +87,7 @@ class App extends Component {
                             </textarea>
                         </div>
                         <button
-                          disabled={ this.isTweetValid() ? true : false}
+                          disabled={ this.isTweetInvalid() ? true : false}
                           type="submit" 
                           className="novoTweet__envia">
                           Tweetar
@@ -53,7 +101,7 @@ class App extends Component {
             <Dashboard posicao="centro">
                 <Widget>
                     <div className="tweetsArea">
-                        <Tweet />
+                    { this.tweetExist() }
                     </div>
                 </Widget>
             </Dashboard>
