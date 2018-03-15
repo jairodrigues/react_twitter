@@ -4,38 +4,30 @@ import Dashboard from './components/Dashboard'
 import Widget from './components/Widget'
 import TrendsArea from './components/TrendsArea'
 import Tweet from './components/Tweet'
+import TweetService from './services'
 
-class App extends Component {
+export default class App extends Component {
   constructor(){
     super()
     this.state = {
       novoTweet: '',
-      tweets: '',
+      tweets:[],
       carregando: true
     }
+    this.service = new TweetService()
   }
 
-  componentDidMount() { //Pega depois que componente montou
-    fetch('https://twitelum-api.herokuapp.com/tweets')
-    .then(resposta => resposta.json())
-    .then(tweets => {this.setState({tweets: tweets,carregando: false})})
-     
+  getTweets = async () =>{
+    const tweets = await this.service.getAll()
+    this.setState({tweets:tweets,carregando: false})
   }
 
-  // componentWillMount() { //Pega antes que o componente monte
-  //   setInterval(() => {
-  //   fetch('https://twitelum-api.herokuapp.com/tweets')
-  //   .then(resposta => resposta.json())
-  //   .then(tweets => {this.setState({tweets: tweets})}, 5000)
-  //   })
-  // }
-
-
-  isTweetInvalid = () => {
-    return this.state.novoTweet.length > 140 
+  isInvalid = () => {
+    const size = this.state.novoTweet.length > 140
+    return size  
   }
 
-  tweetExist(){
+  isValid = () => {
     if(this.state.tweets.length > 0){
         return this.state.tweets.map( (tweet, index)=>
         <Tweet key={tweet._id} conteudo={tweet.conteudo} tweetInfo={tweet}/> 
@@ -45,50 +37,48 @@ class App extends Component {
      }
   }
 
-  adicionaTweet = (event) => {
+  newTweet = async(event) => {
     event.preventDefault()
-    console.log(this.state.novoTweet.length)
-    if(this.isTweetInvalid() || this.state.novoTweet.length === 0){
-      console.log('Invalido')
-    }else{      
-      fetch('https://twitelum-api.herokuapp.com/tweets',{
-        method: 'POST',
-        body: JSON.stringify({ conteudo: this.state.novoTweet, login: 'omariosouto'})
-    })
-    .then((response)=> response.json())
-    .then((tweetServer) => {
-      console.log(tweetServer)
+    if(this.isInvalid()){
+    }else{    
+      const tweetServer = await this.service.newTweet(this.state.novoTweet, 'omariosouto')
       this.setState({
-        tweets: [tweetServer, ...this.state.tweets],
-        novoTweet: ''
-      })
-    })
+      tweets: [tweetServer, ...this.state.tweets],
+      novoTweet: ''
+     })}
   }
-}
+  
+  verifyStatus = () => {
+    if(this.isInvalid())
+      return 'novoTweet__status novoTweet__status--invalido'
+    else{
+      return'novoTweet__status'
+    }
+  }
 
-  render() {
-    
+  componentDidMount = () => { 
+    this.getTweets()           
+  }
+
+  render() {    
+    const { novoTweet } = this.state
     return (
       <Fragment>
         <Cabecalho usuario="@omariosouto" />
         <div className="container">
             <Dashboard>
                 <Widget>
-                    <form onSubmit={this.adicionaTweet} className="novoTweet">
+                    <form onSubmit={this.newTweet} className="novoTweet">
                         <div className="novoTweet__editorArea">
-                            <span 
-                              className={
-                                `novoTweet__status 
-                                ${this.isTweetInvalid() ? 'novoTweet__status--invalido' : ''}
-                                `}>{this.state.novoTweet.length}/140</span>
+                            <span className={`${this.verifyStatus()}`}>{novoTweet.length}/140</span>
                             <textarea className="novoTweet__editor"
                               onChange = {(event)=> {this.setState({novoTweet: event.target.value})}} 
                               placeholder="O que está acontecendo?" 
-                              value={this.state.novoTweet}>
+                              value={novoTweet}>
                             </textarea>
                         </div>
                         <button
-                          disabled={ this.isTweetInvalid() ? true : false}
+                          disabled={ this.isInvalid() ? true : false}
                           type="submit" 
                           className="novoTweet__envia">
                           Tweetar
@@ -102,7 +92,7 @@ class App extends Component {
             <Dashboard posicao="centro">
                 <Widget>
                     <div className="tweetsArea">
-                    { this.state.carregando ? "Carregando" : this.tweetExist()  }
+                    { this.state.carregando ? "Carregando" : this.isValid()  }
                     </div>
                 </Widget>
             </Dashboard>
@@ -112,4 +102,4 @@ class App extends Component {
   }
 }
 
-export default App;
+
